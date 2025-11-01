@@ -2,27 +2,28 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Hyper Lab – Cognitive AI Research</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{
+    html,body{
+      width:100%;
+      height:100%;
+      overflow:hidden;
       font-family:"Inter",sans-serif;
       background:radial-gradient(circle at center,#fafafa 0%,#f3f3f3 100%);
       color:#111;
-      overflow:hidden;
-      height:100vh;
       display:flex;
       flex-direction:column;
       align-items:center;
       justify-content:center;
-      position:relative;
       text-align:center;
+      position:relative;
     }
     canvas{position:absolute;inset:0;z-index:0}
     h1{
-      font-size:3.8rem;
+      font-size:3.5rem;
       font-weight:700;
       letter-spacing:-0.03em;
       z-index:1;
@@ -30,33 +31,36 @@
       animation:fadeIn 1.5s forwards;
     }
     p{
-      font-size:1.25rem;
+      font-size:1.15rem;
       font-weight:400;
-      margin-top:1.5rem;
-      max-width:720px;
-      line-height:1.8;
+      margin-top:1.3rem;
+      max-width:700px;
+      line-height:1.7;
       z-index:1;
       opacity:0;
       animation:fadeIn 1.5s forwards 0.3s;
+      padding:0 1.5rem;
     }
     a{color:#4a63ff;text-decoration:none}
     a:hover{text-decoration:underline}
     .highlight{font-weight:600}
     .lang-selector{
       position:fixed;
-      top:20px;
-      right:20px;
+      top:15px;
+      right:15px;
       z-index:10;
       display:flex;
       flex-wrap:wrap;
-      gap:8px;
+      justify-content:flex-end;
+      gap:6px;
+      max-width:180px;
     }
     button{
       border:none;
       background:#f2f2f2;
       padding:6px 10px;
       border-radius:6px;
-      font-size:0.9rem;
+      font-size:0.85rem;
       cursor:pointer;
       transition:background 0.2s,transform 0.2s;
     }
@@ -68,6 +72,11 @@
     @keyframes fadeIn{
       from{opacity:0;transform:translateY(20px)}
       to{opacity:1;transform:translateY(0)}
+    }
+    @media(max-width:768px){
+      h1{font-size:2.3rem;}
+      p{font-size:1rem;line-height:1.6;max-width:90vw;}
+      .lang-selector{top:10px;right:10px;max-width:150px;}
     }
   </style>
 </head>
@@ -96,17 +105,21 @@
   </p>
 
   <script>
-    // --- Interactive Particles with faster focus ---
+    // --- Responsive particles with fast convergence & touch support ---
     const canvas=document.getElementById("particles");
     const ctx=canvas.getContext("2d");
     const colors=["#9b5de5","#00bbf9","#00f5d4","#f15bb5","#fee440"];
     let particlesArray=[];
     let mouse={x:null,y:null};
 
-    window.addEventListener("mousemove",e=>{
-      mouse.x=e.x;mouse.y=e.y;
-    });
+    function setMousePos(x,y){mouse.x=x;mouse.y=y;}
+    window.addEventListener("mousemove",e=>setMousePos(e.x,e.y));
+    window.addEventListener("touchmove",e=>{
+      const t=e.touches[0];
+      setMousePos(t.clientX,t.clientY);
+    },{passive:true});
     window.addEventListener("mouseout",()=>{mouse.x=null;mouse.y=null;});
+    window.addEventListener("touchend",()=>{mouse.x=null;mouse.y=null;});
 
     function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
     window.addEventListener("resize",resizeCanvas);resizeCanvas();
@@ -115,7 +128,7 @@
       constructor(depth=1){
         this.x=Math.random()*canvas.width;
         this.y=Math.random()*canvas.height;
-        this.size=Math.random()*2.5+0.8;
+        this.size=Math.random()*2.2+0.8;
         this.speedX=(Math.random()-0.5)*(0.4+depth*0.3);
         this.speedY=(Math.random()-0.5)*(0.4+depth*0.3);
         this.color=colors[Math.floor(Math.random()*colors.length)];
@@ -127,14 +140,14 @@
         this.y+=this.speedY;
         if(this.x<0||this.x>canvas.width)this.speedX*=-1;
         if(this.y<0||this.y>canvas.height)this.speedY*=-1;
-        // mouse attraction faster
+        // Faster focus
         if(mouse.x && mouse.y){
           const dx=this.x-mouse.x;
           const dy=this.y-mouse.y;
           const dist=Math.sqrt(dx*dx+dy*dy);
-          const radius=180;
+          const radius=window.innerWidth<768?120:180;
           if(dist<radius){
-            const force=(1-dist/radius)*0.35; // quicker convergence
+            const force=(1-dist/radius)*0.4;
             this.x-=dx*force;
             this.y-=dy*force;
           }
@@ -152,7 +165,8 @@
     }
     function init(){
       particlesArray=[];
-      for(let i=0;i<150;i++){
+      const count=window.innerWidth<768?100:150;
+      for(let i=0;i<count;i++){
         const depth=i<30?3:i<90?2:1;
         particlesArray.push(new Particle(depth));
       }
@@ -235,7 +249,6 @@
     const titleEl=document.getElementById("title");
     const descEl=document.getElementById("desc");
     const buttons=document.querySelectorAll(".lang-selector button");
-
     buttons.forEach(btn=>{
       btn.addEventListener("click",()=>{
         buttons.forEach(b=>b.classList.remove("active"));
